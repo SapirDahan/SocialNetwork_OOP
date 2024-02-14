@@ -3,10 +3,11 @@ import matplotlib.image as mpimg
 
 class post():
 
-    def __init__(self, user, type_of_post, content=None, image_path=None, description=None, price=None, location=None):
+    def __init__(self, user, followers, type_of_post, content=None, image_path=None, description=None, price=None, location=None):
 
-        self.observer = user
+        self.user = user
         self.username = user.username
+        self.followers = followers
         self.like_set = set()
         self.comments_list = list()
         self.information = ""
@@ -31,49 +32,52 @@ class post():
             self.is_sold = False
             self.information = f"{self.username} posted a product for sale:\nFor sale! {description}, price: {price}, pickup from: {location}\n"
             print(self.information)
-        self.return_post()
+        self.notify_followers()
 
-    def return_post(self):
-        return self
 
     def discount(self, price_reduction, password):
-        if password == self.observer.password and self.type == "Sale":
+        if password == self.user.password and self.type == "Sale" and self.user.log_in:
             self.price = self.price * (1 - price_reduction / 100)
             self.information = f"{self.username} posted a product for sale:\nFor sale! {self.description}, price: {self.price}, pickup from: {self.location}"
             print(f"Discount on {self.username} product! the new price is: {self.price}")
 
     def like(self, other_user):
-        if other_user not in self.like_set:
+        if other_user not in self.like_set and self.user.log_in:
             self.like_set.add(other_user)
             message = f"{other_user.username} liked your post"
-            if other_user != self.observer:
+            if other_user is not self.user:
                 self.notification(message)
+                print(f"notification to {self.username}: {message}")
 
     def comment(self, other_user, text):
-        self.comments_list.append((other_user, text))
-        message = f"{other_user.username} commented on your post"
+        if self.user.log_in:
+            self.comments_list.append((other_user, text))
+            message = f"{other_user.username} commented on your post"
 
-        #notifiy only if not the owner of the post had commented
-        if other_user != self.observer:
-            self.notification(message)
-            print(f": {text}")
+            # Notify only if not the owner of the post had commented
+            if other_user is not self.user:
+                self.notification(message)
+                print(f"notification to {self.username}: {message}: {text}")
 
     def notification(self, text):
-        print(f"notification to {self.username}: {text}")
-        self.observer.update_notification(text)
+        self.user.update_notification(text)
+
+    def notify_followers(self):
+        for follower in self.followers:
+            follower.update_notification(f"{self.username} has a new post")
 
     def sold(self, password):
-        if password == self.observer.password and self.type == "Sale":
+        if password == self.user.password and self.type == "Sale" and self.user.log_in:
             self.is_sold = True
-            self.information = f"{self.username} posted a product for sale:\nSold! {self.description}, price: {self.price}, pickup from: {self.location}"
+            self.information = f"{self.username} posted a product for sale:\nSold! {self.description}, price: {self.price}, pickup from: {self.location}\n"
             print(f"{self.username}'s product is sold")
 
     def __str__(self):
         return self.information
 
     def display(self):
-        # img = mpimg.imread(self.image_path)
-        # plt.imshow(img)
-        # plt.axis('off')
-        # plt.show()
-        print("dont forget to add a picture")
+        img = mpimg.imread(self.image_path)
+        plt.imshow(img)
+        plt.axis('off')
+        plt.show()
+        print("Shows picture")
