@@ -47,6 +47,15 @@ class Post:
             self.information = f"{self.username} posted a product for sale:\nFor sale! {self.description}, price: {self.price}, pickup from: {self.location}"
             print(f"Discount on {self.username} product! the new price is: {self.price}")
 
+        elif password != self.user.password:
+            raise ValueError("Invalid password")
+
+        elif self.type != "Sale":
+            raise ValueError("Invalid operation")
+
+        elif not self.user.log_in:
+            raise ValueError("User is not logged in")
+
     # Like the post
     def like(self, other_user):
 
@@ -59,6 +68,12 @@ class Post:
             if other_user is not self.user:
                 self.notification(message)
                 print(f"notification to {self.username}: {message}")
+
+        elif other_user in self.like_set:
+            raise ValueError("User already liked this post")
+
+        elif not self.user.log_in:
+            raise ValueError("User is not logged in")
 
     # Comment a post
     def comment(self, other_user, text):
@@ -76,14 +91,17 @@ class Post:
                 self.notification(message)
                 print(f"notification to {self.username}: {message}: {text}")
 
+        else:
+            raise ValueError("User is not logged in")
+
     # Notify the owner of the post. This is using the observer pattern
     def notification(self, text):
-        self.user.update_notification(text)
+        self.user.update(text)
 
     # Notify the followers of the owner of the post that the owner posted a new post. This is using the observer pattern
     def notify_followers(self):
         for follower in self.followers:
-            follower.update_notification(f"{self.username} has a new post")
+            follower.update(f"{self.username} has a new post")
 
     # Change this product to sold
     def sold(self, password):
@@ -93,6 +111,15 @@ class Post:
             self.is_sold = True  # Change status
             self.information = f"{self.username} posted a product for sale:\nSold! {self.description}, price: {self.price}, pickup from: {self.location}\n"
             print(f"{self.username}'s product is sold")
+
+        elif password != self.user.password:
+            raise ValueError("Invalid password")
+
+        elif not self.type != "Sale":
+            raise ValueError("Invalid operation")
+
+        elif not self.user.log_in:
+            raise ValueError("User is not logged in")
 
     # Make a string that represent the post
     def __str__(self):
@@ -106,3 +133,6 @@ class Post:
             plt.axis('off')
             plt.show()
             print("Shows picture")
+
+        elif self.type != "Image":
+            raise ValueError("Invalid operation")
